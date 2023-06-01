@@ -24,7 +24,7 @@ spec:
         imagePullPolicy: Always
         name: todo-app-container
         ports:
-        - containerPort: 80
+        - containerPort: 8000
           protocol: TCP
       
 ---
@@ -37,7 +37,7 @@ metadata:
     name: todo-app-service
     app: my-todo-app
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
   - port: 80
     targetPort: 80
