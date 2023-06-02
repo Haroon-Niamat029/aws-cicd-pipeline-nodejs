@@ -29,7 +29,7 @@ metadata:
 spec:
   selector:
       app.kubernetes.io/name: todo-app-container
-  type: LoadBalancer
+  type: NodePort
   ports:
   - port: 80
     targetPort: 8000
