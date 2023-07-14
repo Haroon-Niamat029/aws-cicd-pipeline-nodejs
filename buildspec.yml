@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - echo Retrieving Docker Hub credentials...
+      - aws secretsmanager get-secret-value --secret-id my-dockerhub-credentials --query 'SecretString' --output text | jq -r '.DOCKERHUB_USERNAME' > ./dockerhub_username
+      - aws secretsmanager get-secret-value --secret-id my-dockerhub-credentials --query 'SecretString' --output text | jq -r '.DOCKERHUB_PASSWORD' > ./dockerhub_password
+      - echo Logging in to Docker Hub...
+      - docker login -u $(cat ./dockerhub_username) -p $(cat ./dockerhub_password)
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t $(cat ./dockerhub_username)/node-todo-app:latest .
+  post_build:
+    commands:
+      - echo Pushing the Docker image to Docker Hub...
+      - docker push $(cat ./dockerhub_username)/node-todo-app:latest
