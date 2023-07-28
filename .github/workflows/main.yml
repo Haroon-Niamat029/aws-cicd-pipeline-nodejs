@@ -6,7 +6,7 @@ on:
     - 'v*'
 
 env:
-  ECR_REPO: todoapp
+  ECR_REPO: todoappp
   ECS_CLUSTER: todoapp-cluster
   ECS_SERVICE: todoapp-service
   AWS_REGION: us-east-1
