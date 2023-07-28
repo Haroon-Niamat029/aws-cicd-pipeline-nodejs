@@ -10,6 +10,8 @@ env:
   ECS_CLUSTER: todoapp-cluster
   ECS_SERVICE: todoapp-service
   AWS_REGION: us-east-1
+  ECS_TASK_DEFINITION: .aws/td.json 
+  CONTAINER_NAME: ---
 
 jobs:
   build-and-deploy:
