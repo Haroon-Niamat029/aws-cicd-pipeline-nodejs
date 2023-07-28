@@ -1,66 +1,68 @@
-name: githubactions with ECS
+name: Docker Image CI
 on:
   workflow_dispatch:
   push:
    tags:
     - 'v*'
-
-env:
-  ECR_REPO: todoappp
-  ECS_CLUSTER: todoapp-cluster
-  ECS_SERVICE: todoapp-service
-  AWS_REGION: us-east-1
-  ECS_TASK_DEFINITION: .aws/td.json 
-  CONTAINER_NAME: ---
-
 jobs:
-  build-and-deploy:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Configure AWS Credentials
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+                   
+      # Runs a single command using the runners shell
+      - name: Lint code
+        run: echo "Linting repository!"
+
+      # Runs a set of commands using the runners shell
+      - name: Run unit tests
         run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set default.region $AWS_REGION
+          echo "Running unit tests"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      - name: Build, tag, and push docker image to Amazon ECR
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: todoapp
-          IMAGE_TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: my-app-php
+          IMAGE_TAG: latest
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-      - name: Update ECS Task Definition
-        id: update-task-def
+      - name: Download task definition
         run: |
-          echo ::set-output name=task-def-family:task-def-name-$IMAGE_TAG
-          echo ::set-output name=task-def-image:$ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_CONTAINER_DEFINITION }} \
+          --query taskDefinition > task-definition.json
 
-      - name: Deploy to Amazon ECS
-        uses: appleboy/ssh-action@master
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          host: ${{ secrets.ECS_EC2_HOST }}
-          username: ${{ secrets.ECS_EC2_USER }}
-          key: ${{ secrets.ECS_EC2_SSH_KEY }}
-          port: 22
-          script: |
-            # Register new task definition
-            task_def=$(aws ecs register-task-definition \
-              --family ${{ steps.update-task-def.outputs.task-def-family }} \
-              --container-definitions '[{"name":"container-name","image":"${{ steps.update-task-def.outputs.task-def-image }}","portMappings":[{"containerPort":8000,"hostPort":8000}]}]')
-            
-            # Get the revision number of the new task definition
-            task_def_revision=$(echo $task_def | jq -r '.taskDefinition.revision')
+          task-definition: task-definition.json
+          container-name: ${{ secrets.ECS_CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
 
-            # Update ECS service to use the new task definition
-            aws ecs update-service \
-              --cluster $ECS_CLUSTER \
-              --service $ECS_SERVICE \
-              --task-definition ${{ steps.update-task-def.outputs.task-def-family }}:$task_def_revision
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ secrets.ECS_SERVICE }}
+          cluster: ${{ secrets.ECS_CLUSTER }}
+          wait-for-service-stability: true
