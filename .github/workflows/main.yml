@@ -1,0 +1,69 @@
+name: githubactions with ECS
+on:
+  workflow_dispatch:
+  push:
+   tags:
+    - 'v*'
+
+env:
+  ECR_REPO: todoapp
+  ECS_CLUSTER: todoapp-cluster
+  ECS_SERVICE: todoapp-service
+  AWS_REGION: us-east-1
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        run: |
+          echo "[default]" >> ~/.aws/credentials
+          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+
+      - name: Build and push Docker image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+
+      - name: Update ECS Task Definition
+        id: update-task-def
+        run: |
+          echo ::set-output name=task-def-family:task-def-name-$IMAGE_TAG
+          echo ::set-output name=task-def-image:$ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+
+      - name: Deploy to Amazon ECS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ECS_EC2_HOST }}
+          username: ${{ secrets.ECS_EC2_USER }}
+          key: ${{ secrets.ECS_EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # Register new task definition
+            task_def=$(aws ecs register-task-definition \
+              --family ${{ steps.update-task-def.outputs.task-def-family }} \
+              --container-definitions '[{"name":"container-name","image":"${{ steps.update-task-def.outputs.task-def-image }}","portMappings":[{"containerPort":8000,"hostPort":8000}]}]')
+            
+            # Get the revision number of the new task definition
+            task_def_revision=$(echo $task_def | jq -r '.taskDefinition.revision')
+
+            # Update ECS service to use the new task definition
+            aws ecs update-service \
+              --cluster $ECS_CLUSTER \
+              --service $ECS_SERVICE \
+              --task-definition ${{ steps.update-task-def.outputs.task-def-family }}:$task_def_revision
