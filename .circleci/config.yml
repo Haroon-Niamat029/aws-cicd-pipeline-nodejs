@@ -8,10 +8,7 @@ parameters:
 
 workflows:
   build_and_push_workflow:
-  jobs:
-   - build_and_push_job1 
          when: \<< pipeline.parameters.build_job == 'job1' >>
-       
 
 jobs:
   build_and_push_job1:
