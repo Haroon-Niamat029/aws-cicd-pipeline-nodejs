@@ -42,4 +42,4 @@ workflows:
          filters:
             branches:
               only: master
-          when: << pipeline.parameters.trigger == 'build_now' >>
+          when: << pipeline.parameters.trigger >>
