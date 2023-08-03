@@ -20,19 +20,13 @@ jobs:
       - run:
           name: Log in to Docker Hub
           command: docker login -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_ACCESS_TOKEN}"
-      - conditional:
-          steps:
-            - when: << pipeline.parameters.build_job == 'job1' >>
-              continue-on-error: true
-              run:
-                name: Build Docker image and push it to DockerHub
-                command: |
+     
+      - run:
+          name: Build Docker image and push it to DockerHub
+          command: |
                   docker build -t "${DOCKER_HUB_USERNAME}/notes:${CIRCLE_SHA1}" -t "${DOCKER_HUB_USERNAME}/notes:latest" .
                   docker push "${DOCKER_HUB_USERNAME}/notes:${CIRCLE_SHA1}" 
                   docker push "${DOCKER_HUB_USERNAME}/notes:latest"
-     
-            
-
 workflows:
   version: 2
   build_and_push_workflow:
