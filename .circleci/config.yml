@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   docker: circleci/docker@1.1.0
 jobs:
-  build_and_release:
+  build_and_push:
     docker:
       - image: circleci/python:3.8
     working_directory: /home/circleci/project
@@ -33,9 +33,6 @@ jobs:
 
 workflows:
   version: 2
-build_and_release_workflow:
+  build_and_push_workflow:
     jobs:
-      - build_and_release:
-          filters:
-            tags:
-              only: /^v*/
+      - build_and_push
