@@ -2,9 +2,9 @@ version: 2.1
 orbs:
   docker: circleci/docker@1.1.0
 parameters:
-  trigger:
-    type: boolean
-    default: false
+  build_job:
+    type: string
+    default: ''
 
 jobs:
   build_and_push_job1:
@@ -39,7 +39,4 @@ workflows:
   build_and_push_workflow:
     jobs:
       - build_and_push_job1:
-    filters:
-        tags:
-          only:
-            - /^v.*/
+          when: << pipeline.parameters.build_job == 'job1' >>
