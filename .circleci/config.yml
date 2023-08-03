@@ -29,3 +29,8 @@ jobs:
           name: Push Docker image to Docker Hub
           command: |
             docker push ${DOCKER_HUB_USERNAME}/notes:latest
+workflows:
+  version: 2
+  build_and_push_workflow:
+    jobs:
+      - build_and_push
