@@ -8,24 +8,16 @@ jobs:
     working_directory: /home/circleci/project
     steps:
       - checkout
+      # Use the docker orb to build and push the Docker image
+      - docker/build:
+          context: .
+          dockerfile: Dockerfile
+          image: username/notes:${CIRCLE_SHA1}
+          registry-url: docker.io
+          username: $DOCKER_HUB_USERNAME
+          password: $DOCKER_HUB_ACCESS_TOKEN
+          tag: ${CIRCLE_SHA1}
 
-      # Log in to Docker Hub
-      - run:
-          name: Log in to Docker Hub
-          command: docker login -u haroonniamat029 -p "demon392087" 
-
-
-      # Build the Docker image
-      - run:
-          name: Build Docker image
-          command: |
-            docker build -t haroonniamat029/notes:latest .
-      
-      # Push the Docker image to Docker Hub
-      - run:
-          name: Push Docker image to Docker Hub
-          command: |
-            docker push haroonniamat029/notes:latest
 workflows:
   version: 2
   build_and_push_workflow:
