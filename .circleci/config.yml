@@ -3,8 +3,8 @@ orbs:
   docker: circleci/docker@1.1.0
 parameters:
   trigger:
-    type: string
-    default: "job1"  # Default value, you can change this if needed
+    type: boolean
+    default: false
 
 jobs:
   build_and_push:
@@ -27,7 +27,7 @@ jobs:
           command: |
             docker build -t "${DOCKER_HUB_USERNAME}/notes:${CIRCLE_SHA1}" -t "${DOCKER_HUB_USERNAME}/notes:latest" .
       
-      # Push the Docker image to Docker Hubb
+      # Push the Docker image to Docker Hub
       - run:
           name: Push Docker image to Docker Hub
           command: |
@@ -39,5 +39,4 @@ workflows:
   build_and_push_workflow:
     jobs:
       - build_and_push:
-    when: 
-      condition: << pipeline.parameters.trigger >>
+          when: << pipeline.parameters.trigger >>
