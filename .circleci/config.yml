@@ -24,9 +24,11 @@ jobs:
               run:
                 name: Build and push Docker image
                 command: |
+                 if [ "${CIRCLE_JOB}" == "build_and_push_job1" ]; then
                   docker build -t "${DOCKER_HUB_USERNAME}/notes:${CIRCLE_SHA1}" -t "${DOCKER_HUB_USERNAME}/notes:latest" .
                   docker push "${DOCKER_HUB_USERNAME}/notes:${CIRCLE_SHA1}" 
                   docker push "${DOCKER_HUB_USERNAME}/notes:latest"
+                 fi 
 workflows:
   version: 2
   build_and_push_workflow:
