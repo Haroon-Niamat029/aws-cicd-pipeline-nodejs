@@ -3,8 +3,9 @@ orbs:
   docker: circleci/docker@1.1.0
 jobs:
   build_and_push:
-    executor: docker/default
-
+    docker:
+      - image: circleci/python:3.8
+    working_directory: /home/circleci/project
     steps:
       - checkout
 
