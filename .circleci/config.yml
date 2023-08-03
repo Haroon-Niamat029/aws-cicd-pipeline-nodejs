@@ -7,7 +7,7 @@ parameters:
     default: false
 
 jobs:
-  job1:
+  build_and_push_job1:
     docker:
       - image: circleci/python:3.8
     working_directory: /home/circleci/project
