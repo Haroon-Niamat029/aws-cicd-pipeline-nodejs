@@ -36,8 +36,8 @@ jobs:
 
 workflows:
   version: 2
-  build_workflow:
+  build_and_push_workflow:
     jobs:
       - build:
           when:
-            condition: << pipeline.parameters.trigger == 'build_now' >>
+            condition: \<< pipeline.parameters.trigger == 'build_now' >>
