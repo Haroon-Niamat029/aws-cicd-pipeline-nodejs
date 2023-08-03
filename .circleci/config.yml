@@ -16,7 +16,8 @@ jobs:
       # Log in to Docker Hub
       - run:
           name: Log in to Docker Hub
-          command: echo "${DOCKER_HUB_ACCESS_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
+          command: docker login -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_ACCESS_TOKEN}" 
+
 
       # Build the Docker image
       - run:
