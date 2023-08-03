@@ -1,14 +1,9 @@
 version: 2.1
 orbs:
   docker: circleci/docker@1.1.0
-
 jobs:
   build_and_push:
-    docker:
-      - image: circleci/python:3.8  # Choose an image that supports Docker (e.g., Python or Docker itself).
-        environment:
-          DOCKER_HOST: tcp://localhost:2375  # Enable Docker-in-Docker (DinD) for building Docker images within the job.
-    working_directory:  /home/circleci/project
+    executor: docker/default
 
     steps:
       - checkout
