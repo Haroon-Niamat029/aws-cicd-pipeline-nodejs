@@ -42,4 +42,6 @@ workflows:
          filters:
             branches:
               only: master
-          when: << pipeline.parameters.trigger >>
+            tags:
+               only:
+                - /^v.*/
