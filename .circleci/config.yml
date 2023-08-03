@@ -3,8 +3,8 @@ orbs:
   docker: circleci/docker@1.1.0
 parameters:
   trigger:
-    type: string
-    default: 'default'
+    type: boolean
+    default: false
 
 jobs:
   build_and_push_job1:
@@ -42,4 +42,4 @@ workflows:
          filters:
             branches:
               only: master
-          when: \<< pipeline.parameters.trigger >>
+          when: << pipeline.parameters.trigger == 'build_now' >>
