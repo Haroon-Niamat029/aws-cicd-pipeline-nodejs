@@ -39,5 +39,7 @@ workflows:
   build_and_push_workflow:
     jobs:
       - build_and_push_job1:
-          when:
-            condition: \<< pipeline.parameters.trigger == 'build_now' >>
+         filters:
+            branches:
+              only: master
+          when: \<< pipeline.parameters.trigger >>
