@@ -21,7 +21,7 @@ jobs:
           command: |
             docker build -t ${DOCKER_HUB_USERNAME} /notes:latest .
       
-      # Push the Docker image to Docker Hub
+      # Push the Docker image to Docker Hubb
       - run:
           name: Push Docker image to Docker Hub
           command: |
