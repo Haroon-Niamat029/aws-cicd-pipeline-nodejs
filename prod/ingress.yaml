@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: "nginx"
+    nginx.org/client-max-body-size: "1G"
+
+  name: ingress-notes
+  namespace: notes
+spec:
+  rules:
+  - host: devclouds.live
+    http:
+      paths:
+      - backend:
+          service:
+            name: todoapp
+            port:
+              number: 80
+        pathType: ImplementationSpecific
