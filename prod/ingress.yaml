@@ -17,5 +17,5 @@ spec:
           service:
             name: todoapp
             port:
-              number: 8000
-        pathType: ImplementationSpecific
+              number: 80
+      
