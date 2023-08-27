@@ -6,16 +6,16 @@ metadata:
     kubernetes.io/ingress.class: "nginx"
     nginx.org/client-max-body-size: "1G"
 
-  name: ingress-notes
+  name: todo-app
   namespace: notes
 spec:
   rules:
-  - host: devclouds.live
+  - host: myapp.devclouds.live
     http:
       paths:
       - backend:
           service:
-            name: todoapp
+            name: todo-app
             port:
-              number: 80
+              number: 8000
       
