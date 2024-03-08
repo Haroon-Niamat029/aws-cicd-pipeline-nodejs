@@ -20,7 +20,7 @@ spec:
         app.kubernetes.io/name: todo-app
     spec:
       containers:
-      - image: haroonniamat029/hamza:latest
+      - image: haroonniamat029/notes:latest
         imagePullPolicy: Always
         name: todo-app
         ports:
